@@ -4,6 +4,8 @@
 /Temp/**
 /Library/**
 /obj/**
+/Logs/**
+/UserSettings/**
 
 # Visual Studio / MonoDevelop generated
 /ExportedObj/**
