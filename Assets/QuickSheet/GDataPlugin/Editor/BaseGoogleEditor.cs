@@ -1,4 +1,13 @@
 ///////////////////////////////////////////////////////////////////////////////
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+// to resolve TlsException error.
+using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+using System.Text.RegularExpressions;
+using UnityEditor;
 ///
 /// BaseGoogleEditor.cs
 /// 
@@ -6,22 +15,6 @@
 ///
 ///////////////////////////////////////////////////////////////////////////////
 using UnityEngine;
-using UnityEditor;
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
-
-// to resolve TlsException error.
-using System.Net;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
-
-using Google.GData.Client;
-using Google.GData.Spreadsheets;
 
 namespace UnityQuickSheet
 {
@@ -51,12 +44,12 @@ namespace UnityQuickSheet
             GoogleDataSettings settings = GoogleDataSettings.Instance;
             if (settings != null)
             {
-                if (string.IsNullOrEmpty(settings.OAuth2Data.client_id) ||
-                    string.IsNullOrEmpty(settings.OAuth2Data.client_secret))
-                    Debug.LogWarning("Client_ID and Client_Sceret is empty. Reload .json file.");
+                //if (string.IsNullOrEmpty(settings.OAuth2Data.client_id) ||
+                //    string.IsNullOrEmpty(settings.OAuth2Data.client_secret))
+                //    Debug.LogWarning("Client_ID and Client_Sceret is empty. Reload .json file.");
 
-                if (string.IsNullOrEmpty(settings._AccessCode))
-                    Debug.LogWarning("AccessCode is empty. Redo authenticate again.");
+                //if (string.IsNullOrEmpty(settings._AccessCode))
+                //    Debug.LogWarning("AccessCode is empty. Redo authenticate again.");
             }
             else
             {
@@ -137,6 +130,49 @@ namespace UnityQuickSheet
         {
             string sTemp = Regex.Replace(inputCamelCaseString, "([A-Z][a-z])", " $1", RegexOptions.Compiled).Trim();
             return Regex.Replace(sTemp, "([A-Z][A-Z])", " $1", RegexOptions.Compiled).Trim();
+        }
+
+
+
+        /// <summary>
+        /// Convert type of cell value to its predefined type which is specified in the sheet's ScriptMachine setting file.
+        /// </summary>
+        protected object ConvertFrom(object cell, Type t)
+        {
+            if (t.IsGenericType && t.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
+            {
+                var nc = new NullableConverter(t);
+                return nc.ConvertFrom(cell);
+            }
+
+            if (t.IsEnum)
+            {
+                // for enum type, first get value by string then convert it to enum.
+                return Enum.Parse(t, cell.ToString(), true);
+            }
+            else if (t.IsArray)
+            {
+                if (t.GetElementType() == typeof(float))
+                    return ConvertExt.ToSingleArray(cell.ToString());
+
+                if (t.GetElementType() == typeof(double))
+                    return ConvertExt.ToDoubleArray(cell.ToString());
+
+                if (t.GetElementType() == typeof(short))
+                    return ConvertExt.ToInt16Array(cell.ToString());
+
+                if (t.GetElementType() == typeof(int))
+                    return ConvertExt.ToInt32Array(cell.ToString());
+
+                if (t.GetElementType() == typeof(long))
+                    return ConvertExt.ToInt64Array(cell.ToString());
+
+                if (t.GetElementType() == typeof(string))
+                    return ConvertExt.ToStringArray(cell.ToString());
+            }
+
+            // for all other types, convert its corresponding type.
+            return Convert.ChangeType(cell.ToString(), t);
         }
     }
 }

@@ -13,15 +13,75 @@ MonoBehaviour:
   m_Name: Google Data Settings
   m_EditorClassIdentifier: 
   TemplatePath: QuickSheet/GDataPlugin/Templates
-  RuntimePath: 
-  EditorPath: 
+  RuntimePath: QuickSheet/GoogleExample/Data/Runtime
+  EditorPath: QuickSheet/GoogleExample/Data/Editor
+  ScriptableObjectPath: QuickSheet/GoogleExample/Data/SO
   OAuth2Data:
-    client_id: 
-    auth_uri: 
-    token_uri: 
-    auth_provider_x509_cert_url: 
-    client_secret: 
-    redirect_uris: []
-  _AccessCode: Paste AcecessCode here!
-  _RefreshToken: 
-  _AccessToken: 
+    type: service_account
+    project_id: unity-quicksheet-387005
+    private_key_id: 8a419b0d31610dcc259f4475fb52b45c569d4f9a
+    private_key: '-----BEGIN PRIVATE KEY-----
+
+      MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC1ir/1wmkry5UJ
+
+      LyOynauWR67VNNAu7rvrGhRXs/14yJ5tytv6RS29MWEHJ8qX/jUVB8+BMt04uNIQ
+
+      fHs30JB/0+qXFAEq7wYzS++K7MT4RieLm5o2t6mHvUvny4DT6U5d0173Qgf/5Jx2
+
+      uMs9tRnRvH9zb9q4AuVhoQBt6+eHSWMzWdlhFM7yAwud8ALVi2OwSs5kE0k+vcpi
+
+      rCyUT5fDhkiHpi4jBO8giB1JVjpLdu8/N//u3kYtoQVJPzEdW49xVgzuw4Qr5ebd
+
+      zRYg4QHRayAi7ij6uNex/H9HsA4+ivHEe5PZ1P2z+nTrk8TqAxGynUSXgDKc954A
+
+      afvFRt3pAgMBAAECggEAAkyVjck+h712T713GEYC7E5QGocms9F2M84Kv+mZpjP0
+
+      PbO6AXtqzuCXN/37BN3FUlTc/eflAVjl4CuTa+uKSPQoHm20bhTE4VVu3TWOcQ6C
+
+      ZbQ8ycCdtwhgs7jSEtz7jxikNUFy1HzStnY0rL1kbFGU06NxA6+VtBzT4pCASChS
+
+      TmJ26YKKXKDNGAI5e45fZjc3lsJEFPLyJJ4EkH6Fps/AZ4YQy0GbvQLqD0lwIMI2
+
+      ZiwU+6EYCdtOXaBsMPY5nj55JYGfdg7vATU34+mhtax5736W92/B7k8fh9yh8eI5
+
+      X0gDFo6qI6PHIEYcazd6kl3rMZLpxayKVK1yAsxnYQKBgQDmOLf2MtFLxHHawscd
+
+      Xm/IIU9gi8KM/NunJap41EZVczOYDcgEgNzTdBKi/Gq8uXuyGDdmxNBHOXrnq9Lr
+
+      Wxzn6gPX3Svf4h/rqP3eddLapOfSloXNtbGuiWZNrLH0/6lBcgZDsP+E5TV4vqjk
+
+      XC/fmgwgTojTUawF7uz34ShtBQKBgQDJ3qK4n++ockwv/Uw29Zw8/w/YkgmJTKuE
+
+      OKOS5fJj1IRH1QTtY7qdpD0DLtkqO4PTjKMYU/pbzrjcjl/9xm81Q3ABQhZrBI/8
+
+      ZXkiWIrgcsdHY4hKmyqEbzOLXUFlk/UKiYyj4LyVFvfy6BBK3NDLIG9ZffvkWzzJ
+
+      qLCepk3ilQKBgQDGUywe2k400CkoxEyVf0oahJ+F00ApBpcOmcMOTge9Cv3ySkT5
+
+      pC0Xt9FqOLqWk878cCIh1QB7qwe21e1gNOBk5NKkvfJS7tCCydTRNH0NP6w5XNQt
+
+      jw1fBxxrY472ONwM9fZxj+O/D1mOB+kkuEnBfUpe9mimaqAfiGD5dSzHJQKBgBZ0
+
+      d3FGCSiZnjPwXxv18i0uyhpzFDB7oNCSZE+g2HeWWiiLX4Lwhv+mF0tVWL7D5AQS
+
+      Lsoz/TNdKV8PT0oxWol4OOtK6Kd62HFg8DqL0tborZYZUj3KSM52eCtWckHUVXuY
+
+      lVZdV1zWMzqH6dgJ/Ae8UeaIhw59v6NG6m6bXSqJAoGAf+1xSwSQLMemDj5Q53MD
+
+      /dVX8p9hgiC7Bqtc1Ngh7uYykeLSjrIarTFegFA9Hj6KIMGyBhbBm4nqzAHlajAL
+
+      3qAI7O8qICSmhWHN2tQK4yiuE9v+hfVl+Ia+3PoMA8FwmaCUkqluoXAbC/SMatjF
+
+      Rccb+G0F+xPz02hmaZyPxoI=
+
+      -----END
+      PRIVATE KEY-----
+
+'
+    client_email: unity-client@unity-quicksheet-387005.iam.gserviceaccount.com
+    client_id: 103855344753768515759
+    auth_uri: https://accounts.google.com/o/oauth2/auth
+    token_uri: https://oauth2.googleapis.com/token
+    auth_provider_x509_cert_url: https://www.googleapis.com/oauth2/v1/certs
+    client_x509_cert_url: https://www.googleapis.com/robot/v1/metadata/x509/unity-client%40unity-quicksheet-387005.iam.gserviceaccount.com
+    universe_domain: googleapis.com

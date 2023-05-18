@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e69e563843eb1dc42bb3e8faa949b411, type: 3}
+  m_Name: Item
+  m_EditorClassIdentifier: 
+  SheetName: 1_OXrt1si7FVTZGyuXEgg8WVca6nYaU6GbwN1frcvZBc
+  WorksheetName: Item
+  dataArray:
+  - key: ID_ITEM01
+    text: Armor03
+    value: 0
+  - key: ID_ITEM02
+    text: Sword01
+    value: 1
+  - key: ID_ITEM03
+    text: Sword02
+    value: 2
+  - key: ID_ITEM04
+    text: Shield
+    value: 3
+  - key: ID_ITEM05
+    text: Hammer
+    value: 4

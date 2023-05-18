@@ -66,6 +66,14 @@ namespace UnityQuickSheet
         }
 
         [SerializeField]
+        private string scriptableObjectFilePath;
+        public string ScriptableObjectPath
+        {
+            get { return scriptableObjectFilePath; }
+            set { scriptableObjectFilePath = value; }
+        }
+
+        [SerializeField]
         private string sheetName;
         public string SpreadSheetName
         {

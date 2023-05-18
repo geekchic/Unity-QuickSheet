@@ -10,6 +10,9 @@ using UnityEditor;
 using System.Collections;
 using System.IO;
 using System.Collections.Generic;
+using Google.Apis.Sheets.v4;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Services;
 
 namespace UnityQuickSheet
 {
@@ -48,26 +51,54 @@ namespace UnityQuickSheet
         /// </summary>
         public string EditorPath = string.Empty;
 
+        public string ScriptableObjectPath = string.Empty;
+
         [System.Serializable]
         public struct OAuth2JsonData
         {
+            public string type;
+            public string project_id;
+            public string private_key_id;
+            public string private_key;
+            public string client_email;
             public string client_id;
             public string auth_uri;
             public string token_uri;
             public string auth_provider_x509_cert_url;
-            public string client_secret;
-            public List<string> redirect_uris;
+            public string client_x509_cert_url;
+            public string universe_domain;
         };
 
         public OAuth2JsonData OAuth2Data;
 
+        private SheetsService service;
+        public SheetsService Service 
+        {
+            get 
+            {
+                if (service == null)
+                {
+                    Stream jsonCreds = (Stream)File.Open(JsonFilePath, FileMode.Open);
+
+                    ServiceAccountCredential credential = ServiceAccountCredential.FromServiceAccountData(jsonCreds);
+
+                    service = new SheetsService(new BaseClientService.Initializer()
+                    {
+                        HttpClientInitializer = credential,
+                    });
+                }
+                
+                return service;
+            }
+        }
+
         // enter Access Code after getting it from auth url
-        public string _AccessCode = "Paste AcecessCode here!";
+        //public string _AccessCode = "Paste AcecessCode here!";
 
-        // enter Auth 2.0 Refresh Token and AccessToken after succesfully authorizing with Access Code
-        public string _RefreshToken = "";
+        //// enter Auth 2.0 Refresh Token and AccessToken after succesfully authorizing with Access Code
+        //public string _RefreshToken = "";
 
-        public string _AccessToken = "";
+        //public string _AccessToken = "";
 
         /// <summary>
         /// Select currently exist account setting asset file.

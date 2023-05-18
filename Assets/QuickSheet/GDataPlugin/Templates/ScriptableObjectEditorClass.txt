@@ -1,12 +1,10 @@
-using UnityEngine;
-using UnityEditor;
-using System.Collections;
+using Google.Apis.Sheets.v4;
+using Google.Apis.Sheets.v4.Data;
+using System;
 using System.Collections.Generic;
-using System.Text;
-
-using GDataDB;
-using GDataDB.Linq;
-
+using System.Reflection;
+using UnityEditor;
+using UnityEngine;
 using UnityQuickSheet;
 
 ///
@@ -19,22 +17,48 @@ public class $ClassName : BaseGoogleEditor<$WorkSheetClassName>
     {        
         $WorkSheetClassName targetData = target as $WorkSheetClassName;
         
-        var client = new DatabaseClient("", "");
-        string error = string.Empty;
-        var db = client.GetDatabase(targetData.SheetName, ref error);	
-        var table = db.GetTable<$DataClassName>(targetData.WorksheetName) ?? db.CreateTable<$DataClassName>(targetData.WorksheetName);
-        
         List<$DataClassName> myDataList = new List<$DataClassName>();
-        
-        var all = table.FindAll();
-        foreach(var elem in all)
+
+        var t = typeof($DataClassName);
+        PropertyInfo[] p = t.GetProperties();
+
+        var service = GoogleDataSettings.Instance.Service;
+        var spreadsheetId = targetData.SheetName;
+        var sheetNameAndRange = $"{targetData.WorksheetName}";
+        SpreadsheetsResource.ValuesResource.GetRequest request = service.Spreadsheets.Values.Get(spreadsheetId, sheetNameAndRange);
+        ValueRange response = request.Execute();
+        var rows = response.Values;
+
+        for (int i = 1; i < rows.Count; i++)
         {
-            $DataClassName data = new $DataClassName();
-            
-            data = Cloner.DeepCopy<$DataClassName>(elem.Element);
-            myDataList.Add(data);
+            var cells = rows[i];
+            var item = ($DataClassName)Activator.CreateInstance(t);
+            for (var j = 0; j < p.Length; j++)
+            {
+                var cell = cells[j];
+
+                if (cell == null)  // skip empty cell
+                    continue;
+
+                var property = p[j];
+                if (property.CanWrite)
+                {
+                    try
+                    {
+                        var value = ConvertFrom(cell, property.PropertyType);
+                        property.SetValue(item, value, null);
+                    }
+                    catch (Exception e)
+                    {
+                        string pos = string.Format("Row[{0}], Cell[{1}]", i, j);
+                        Debug.LogError(string.Format("Excel File {0} Deserialize Exception: {1} at {2}", targetData.WorksheetName, e.Message, pos));
+                    }
+                }
+            }
+
+            myDataList.Add(item);
         }
-                
+
         targetData.dataArray = myDataList.ToArray();
         
         EditorUtility.SetDirty(targetData);

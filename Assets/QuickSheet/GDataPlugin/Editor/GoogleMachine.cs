@@ -10,6 +10,10 @@ using UnityEditor;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using Google.Apis.Sheets.v4;
+using Google.Apis.Sheets.v4.Data;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Services;
 
 namespace UnityQuickSheet
 {
@@ -22,9 +26,6 @@ namespace UnityQuickSheet
         public static string generatorAssetPath = "Assets/QuickSheet/GDataPlugin/Tool/";
         [SerializeField]
         public static string assetFileName = "GoogleMachine.asset";
-
-
-        public string AccessCode = "";
 
         /// <summary>
         /// Note: Called when the asset file is created.

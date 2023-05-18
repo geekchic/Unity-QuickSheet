@@ -1,4 +1,13 @@
 ///////////////////////////////////////////////////////////////////////////////
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Services;
+using Google.Apis.Sheets.v4;
+using Google.Apis.Sheets.v4.Data;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
+using UnityEditor;
 ///
 /// GoogleMachineEditor.cs
 /// 
@@ -6,24 +15,8 @@
 ///
 ///////////////////////////////////////////////////////////////////////////////
 using UnityEngine;
-using UnityEditor;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.IO;
-using System.Linq;
 
 // to resolve TlsException error.
-using System.Net;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
-
-using GDataDB;
-using GDataDB.Linq;
-
-using GDataDB.Impl;
-using Google.GData.Client;
-using Google.GData.Spreadsheets;
 
 namespace UnityQuickSheet
 {
@@ -50,6 +43,8 @@ namespace UnityQuickSheet
                     machine.RuntimeClassPath = GoogleDataSettings.Instance.RuntimePath;
                 if (string.IsNullOrEmpty(GoogleDataSettings.Instance.EditorPath) == false)
                     machine.EditorClassPath = GoogleDataSettings.Instance.EditorPath;
+                if (string.IsNullOrEmpty(GoogleDataSettings.Instance.ScriptableObjectPath) == false)
+                    machine.ScriptableObjectPath = GoogleDataSettings.Instance.ScriptableObjectPath;
             }
         }
 
@@ -110,6 +105,7 @@ namespace UnityQuickSheet
             machine.TemplatePath = EditorGUILayout.TextField("Template: ", machine.TemplatePath);
             machine.RuntimeClassPath = EditorGUILayout.TextField("Runtime: ", machine.RuntimeClassPath);
             machine.EditorClassPath = EditorGUILayout.TextField("Editor:", machine.EditorClassPath);
+            machine.ScriptableObjectPath = EditorGUILayout.TextField("ScriptableObejct:", machine.ScriptableObjectPath);
 
             machine.onlyCreateDataClass = EditorGUILayout.Toggle("Only DataClass", machine.onlyCreateDataClass);
 
@@ -124,9 +120,13 @@ namespace UnityQuickSheet
                 }
 
                 if (Generate(this.machine) != null)
+                {
                     Debug.Log("Successfully generated!");
+                }
                 else
+                {
                     Debug.LogError("Failed to create a script from Google Spreadsheet.");
+                }
             }
 
             // force save changed type.
@@ -138,61 +138,11 @@ namespace UnityQuickSheet
         }
 
         /// <summary>
-        /// A delegate called on each of a cell query.
-        /// </summary>
-        delegate void OnEachCell(CellEntry cell);
-
-        /// <summary>
-        /// Connect to google-spreadsheet with the specified account and password 
-        /// then query cells and call the given callback.
-        /// </summary>
-        private void DoCellQuery(OnEachCell onCell)
-        {
-            // first we need to connect to the google-spreadsheet to get all the first row of the cells
-            // which are used for the properties of data class.
-            var client = new DatabaseClient("", "");
-
-            if (string.IsNullOrEmpty(machine.SpreadSheetName))
-                return;
-            if (string.IsNullOrEmpty(machine.WorkSheetName))
-                return;
-
-            string error = string.Empty;
-            var db = client.GetDatabase(machine.SpreadSheetName, ref error);
-            if (db == null)
-            {
-                string message = string.Empty;
-                if (string.IsNullOrEmpty(error))
-                    message = @"Unknown error.";
-                else
-                    message = string.Format(@"{0}", error);
-
-                message += "\n\nOn the other hand, see 'GoogleDataSettings.asset' file and check the oAuth2 setting is correctly done.";
-                EditorUtility.DisplayDialog("Error", message, "OK");
-                return;
-            }
-
-            // retrieves all cells
-            var worksheet = ((Database)db).GetWorksheetEntry(machine.WorkSheetName);
-
-            // Fetch the cell feed of the worksheet.
-            CellQuery cellQuery = new CellQuery(worksheet.CellFeedLink);
-            var cellFeed = client.SpreadsheetService.Query(cellQuery);
-
-            // Iterate through each cell, printing its value.
-            foreach (CellEntry cell in cellFeed.Entries)
-            {
-                if (onCell != null)
-                    onCell(cell);
-            }
-        }
-
-        /// <summary>
         /// Connect to the google spreadsheet and retrieves its header columns.
         /// </summary>
         protected override void Import(bool reimport = false)
         {
-            Regex re = new Regex(@"\d+");
+            //Regex re = new Regex(@"\d+");
 
             Dictionary<string, ColumnHeader> headerDic = null;
             if (reimport)
@@ -203,41 +153,44 @@ namespace UnityQuickSheet
             List<ColumnHeader> tmpColumnList = new List<ColumnHeader>();
 
             int order = 0;
-            // query the first columns only.
-            DoCellQuery((cell) =>
+
+            var service = GoogleDataSettings.Instance.Service;
+            var spreadsheetId = machine.SpreadSheetName;
+            var sheetNameAndRange = $"{machine.WorkSheetName}!1:1";
+            SpreadsheetsResource.ValuesResource.GetRequest request = service.Spreadsheets.Values.Get(spreadsheetId, sheetNameAndRange);
+            ValueRange response = request.Execute();
+            var rows = response.Values;
+            for (int i = 0; i < rows.Count; i++)
             {
-
-                // get numerical value from a cell's address in A1 notation
-                // only retrieves first column of the worksheet 
-                // which is used for member fields of the created data class.
-                Match m = re.Match(cell.Title.Text);
-                if (int.Parse(m.Value) > 1)
-                    return;
-
-                // check the column header is valid
-                if (!IsValidHeader(cell.Value))
+                var cells = rows[i];
+                for (int j = 0; j < cells.Count; j++)
                 {
-                    string error = string.Format(@"Invalid column header name {0}. Any c# keyword should not be used for column header. Note it is not case sensitive.", cell.Value);
-                    EditorUtility.DisplayDialog("Error", error, "OK");
-                    return;
-                }
+                    var value = cells[j].ToString();
 
-                ColumnHeader column = ParseColumnHeader(cell.Value, order++);
-                if (headerDic != null && headerDic.ContainsKey(cell.Value))
-                {
-                    // if the column is already exist, copy its name and type from the exist one.
-                    ColumnHeader h = machine.ColumnHeaderList.Find(x => x.name == column.name);
-                    if (h != null)
+                    // check the column header is valid
+                    if (!IsValidHeader(value))
                     {
-                        column.type = h.type;
-                        column.isArray = h.isArray;
+                        string error = string.Format(@"Invalid column header name {0}. Any c# keyword should not be used for column header. Note it is not case sensitive.", value);
+                        EditorUtility.DisplayDialog("Error", error, "OK");
+                        return;
                     }
+
+                    ColumnHeader column = ParseColumnHeader(value, order++);
+                    if (headerDic != null && headerDic.ContainsKey(value))
+                    {
+                        // if the column is already exist, copy its name and type from the exist one.
+                        ColumnHeader h = machine.ColumnHeaderList.Find(x => x.name == column.name);
+                        if (h != null)
+                        {
+                            column.type = h.type;
+                            column.isArray = h.isArray;
+                        }
+                    }
+
+                    tmpColumnList.Add(column);
                 }
-
-                tmpColumnList.Add(column);
-            });
-
-            // update (all of settings are reset when it reimports)
+            }
+                // update (all of settings are reset when it reimports)
             machine.ColumnHeaderList = tmpColumnList;
 
             EditorUtility.SetDirty(machine);
@@ -253,19 +206,19 @@ namespace UnityQuickSheet
         {
             List<MemberFieldData> fieldList = new List<MemberFieldData>();
 
-            Regex re = new Regex(@"\d+");
-            DoCellQuery((cell) =>
-            {
-                // get numerical value from a cell's address in A1 notation
-                // only retrieves first column of the worksheet 
-                // which is used for member fields of the created data class.
-                Match m = re.Match(cell.Title.Text);
-                if (int.Parse(m.Value) > 1)
-                    return;
+            //Regex re = new Regex(@"\d+");
+            //DoCellQuery((cell) =>
+            //{
+            //    // get numerical value from a cell's address in A1 notation
+            //    // only retrieves first column of the worksheet 
+            //    // which is used for member fields of the created data class.
+            //    Match m = re.Match(cell.Title.Text);
+            //    if (int.Parse(m.Value) > 1)
+            //        return;
 
-                // add cell's displayed value to the list.
-                fieldList.Add(new MemberFieldData(cell.Value.Replace(" ", "")));
-            });
+            //    // add cell's displayed value to the list.
+            //    fieldList.Add(new MemberFieldData(cell.Value.Replace(" ", "")));
+            //});
 
             sp.className = machine.WorkSheetName + "Data";
             sp.template = GetTemplate("DataClass");

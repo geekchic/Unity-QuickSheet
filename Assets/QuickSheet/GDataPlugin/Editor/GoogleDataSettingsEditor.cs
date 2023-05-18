@@ -64,25 +64,27 @@ namespace UnityQuickSheet
             const string infoMsg = "Copying <b>'client_id'</b> and <b>'client_secret'</b> from Google Developer Console and pasting that into the textfields without specifying json file is also working, if you don't want to install oauth2 json file on the local disk.";
             GUIHelper.HelpBox(infoMsg, MessageType.Info);
 
-            const int LabelWidth = 90;
+            EditorGUILayout.Separator();
 
-            using (new GUILayout.HorizontalScope())
-            {
-                GoogleDataSettings.useOAuth2JsonFile = GUILayout.Toggle(GoogleDataSettings.useOAuth2JsonFile, " I have OAuth2 JSON file");
+            const int LabelWidth = 120;
 
-                // reset client_id and client_secret and empty its textfields.
-                if (GUILayout.Button("Reset", GUILayout.Width(60)))
-                {
-                    GoogleDataSettings.Instance.OAuth2Data.client_id = string.Empty;
-                    GoogleDataSettings.Instance.OAuth2Data.client_secret = string.Empty;
-                    GoogleDataSettings.Instance._AccessCode = string.Empty;
+            //using (new GUILayout.HorizontalScope())
+            //{
+            //    GoogleDataSettings.useOAuth2JsonFile = GUILayout.Toggle(GoogleDataSettings.useOAuth2JsonFile, " I have OAuth2 JSON file");
 
-                    // retrieves from google developer center.
-                    GoogleDataSettings.Instance._RefreshToken = string.Empty;
-                    GoogleDataSettings.Instance._AccessToken = string.Empty;
-                }
-            }
-            if (GoogleDataSettings.useOAuth2JsonFile)
+            //    // reset client_id and client_secret and empty its textfields.
+            //    if (GUILayout.Button("Reset", GUILayout.Width(60)))
+            //    {
+            //        GoogleDataSettings.Instance.OAuth2Data.client_id = string.Empty;
+            //        //GoogleDataSettings.Instance.OAuth2Data.client_secret = string.Empty;
+            //        //GoogleDataSettings.Instance._AccessCode = string.Empty;
+
+            //        // retrieves from google developer center.
+            //        //GoogleDataSettings.Instance._RefreshToken = string.Empty;
+            //        //GoogleDataSettings.Instance._AccessToken = string.Empty;
+            //    }
+            //}
+            //if (GoogleDataSettings.useOAuth2JsonFile)
             {
                 GUILayout.BeginHorizontal(); // Begin json file setting
                 GUILayout.Label("JSON File:", GUILayout.Width(LabelWidth));
@@ -118,13 +120,15 @@ namespace UnityQuickSheet
                         //GoogleDataSettings.Instance.OAuth2Data = JsonConvert.DeserializeObject<GoogleDataSettings.OAuth2JsonData>(oauthData);
 
                         //HACK: assume the parsed json string contains only one property value: JObject.Parse(jsonData).Count == 1
-                        JObject jo = JObject.Parse(jsonData);
-                        var propertyValues = jo.PropertyValues();
-                        foreach (JToken token in propertyValues)
-                        {
-                            string val = token.ToString();
-                            GoogleDataSettings.Instance.OAuth2Data = JsonConvert.DeserializeObject<GoogleDataSettings.OAuth2JsonData>(val);
-                        }
+                        //JObject jo = JObject.Parse(jsonData);
+                        //var propertyValues = jo.PropertyValues();
+                        //foreach (JToken token in propertyValues)
+                        //{
+                        //    string val = token.ToString();
+                        //    GoogleDataSettings.Instance.OAuth2Data = JsonConvert.DeserializeObject<GoogleDataSettings.OAuth2JsonData>(val);
+                        //}
+
+                        GoogleDataSettings.Instance.OAuth2Data = JsonConvert.DeserializeObject<GoogleDataSettings.OAuth2JsonData>(jsonData);
 
                         GoogleDataSettings.Instance.JsonFilePath = path;
 
@@ -136,44 +140,45 @@ namespace UnityQuickSheet
                 GUILayout.EndHorizontal(); // End json file setting.
             }
 
-            EditorGUILayout.Separator();
+            //EditorGUILayout.Separator();
 
-            if (GoogleDataSettings.Instance.OAuth2Data.client_id == null)
-                GoogleDataSettings.Instance.OAuth2Data.client_id = string.Empty;
-            if (GoogleDataSettings.Instance.OAuth2Data.client_secret == null)
-                GoogleDataSettings.Instance.OAuth2Data.client_secret = string.Empty;
+            //if (GoogleDataSettings.Instance.OAuth2Data.client_id == null)
+            //    GoogleDataSettings.Instance.OAuth2Data.client_id = string.Empty;
+            //if (GoogleDataSettings.Instance.OAuth2Data.client_secret == null)
+            //    GoogleDataSettings.Instance.OAuth2Data.client_secret = string.Empty;
 
             // client_id for OAuth2
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Client ID: ", GUILayout.Width(LabelWidth));
-            GoogleDataSettings.Instance.OAuth2Data.client_id = GUILayout.TextField(GoogleDataSettings.Instance.OAuth2Data.client_id);
+            GUILayout.Label("Service Account ID: ", GUILayout.Width(LabelWidth));
+            GoogleDataSettings.Instance.OAuth2Data.client_email = GUILayout.TextField(GoogleDataSettings.Instance.OAuth2Data.client_email);
             GUILayout.EndHorizontal();
 
-            // client_secret for OAuth2
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Client Secret: ", GUILayout.Width(LabelWidth));
-            GoogleDataSettings.Instance.OAuth2Data.client_secret = GUILayout.TextField(GoogleDataSettings.Instance.OAuth2Data.client_secret);
-            GUILayout.EndHorizontal();
+            //// client_secret for OAuth2
+            //GUILayout.BeginHorizontal();
+            //GUILayout.Label("Client Secret: ", GUILayout.Width(LabelWidth));
+            //GoogleDataSettings.Instance.OAuth2Data.client_secret = GUILayout.TextField(GoogleDataSettings.Instance.OAuth2Data.client_secret);
+            //GUILayout.EndHorizontal();
 
             EditorGUILayout.Separator();
 
-            if (GUILayout.Button("Start Authentication"))
-            {
-                GDataDB.Impl.GDataDBRequestFactory.InitAuthenticate();
-            }
+            //if (GUILayout.Button("Start Authentication"))
+            //{
+            //    //GDataDB.Impl.GDataDBRequestFactory.InitAuthenticate();
+            //}
 
-            GoogleDataSettings.Instance._AccessCode = EditorGUILayout.TextField("AccessCode", GoogleDataSettings.Instance._AccessCode);
-            if (GUILayout.Button("Finish Authentication"))
-            {
-                try
-                {
-                    GDataDB.Impl.GDataDBRequestFactory.FinishAuthenticate();
-                }
-                catch (Exception e)
-                {
-                    EditorUtility.DisplayDialog("Error", e.Message, "OK");
-                }
-            }
+            //GoogleDataSettings.Instance._AccessCode = EditorGUILayout.TextField("AccessCode", GoogleDataSettings.Instance._AccessCode);
+            //if (GUILayout.Button("Finish Authentication"))
+            //{
+            //    try
+            //    {
+            //        //GDataDB.Impl.GDataDBRequestFactory.FinishAuthenticate();
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        EditorUtility.DisplayDialog("Error", e.Message, "OK");
+            //    }
+            //}
+
             EditorGUILayout.Separator();
 
             GUILayout.BeginHorizontal();
@@ -191,6 +196,11 @@ namespace UnityQuickSheet
             GUILayout.BeginHorizontal();
             GUILayout.Label("Editor Path: ", GUILayout.Width(LabelWidth));
             GoogleDataSettings.Instance.EditorPath = GUILayout.TextField(GoogleDataSettings.Instance.EditorPath);
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("SO Path: ", GUILayout.Width(LabelWidth));
+            GoogleDataSettings.Instance.ScriptableObjectPath = GUILayout.TextField(GoogleDataSettings.Instance.ScriptableObjectPath);
             GUILayout.EndHorizontal();
 
             if (GUI.changed)
