@@ -24,4 +24,8 @@ public class FighterData
   Difficulty difficulty;
   public Difficulty DIFFICULTY { get {return difficulty; } set { this.difficulty = value;} }
   
+  [SerializeField]
+  bool upgradable;
+  public bool Upgradable { get {return upgradable; } set { this.upgradable = value;} }
+  
 }
