@@ -105,9 +105,22 @@ namespace UnityQuickSheet
             using (new GUILayout.HorizontalScope())
             {
                 EditorGUILayout.LabelField("Worksheet: ", GUILayout.Width(100));
-                machine.CurrentSheetIndex = EditorGUILayout.Popup(machine.CurrentSheetIndex, machine.SheetNames);
+                bool dirty = false;
+                var sheetIndex = EditorGUILayout.Popup(machine.CurrentSheetIndex, machine.SheetNames);
+                if (sheetIndex != machine.CurrentSheetIndex)
+                {
+                    dirty = true;
+                }
+
+                machine.CurrentSheetIndex = sheetIndex;
+
                 if (machine.SheetNames != null)
                     machine.WorkSheetName = machine.SheetNames[machine.CurrentSheetIndex];
+
+                if (dirty)
+                {
+                    Import(true);
+                }
 
                 if (GUILayout.Button("Refresh", GUILayout.Width(60)))
                 {
@@ -212,9 +225,8 @@ namespace UnityQuickSheet
                 return;
             }
 
-            int startRowIndex = 0;
             string error = string.Empty;
-            var titles = new ExcelQuery(path, sheet).GetTitle(startRowIndex, ref error);
+            var titles = new ExcelQuery(path, sheet).GetTitle(ref error);
             if (titles == null || !string.IsNullOrEmpty(error))
             {
                 EditorUtility.DisplayDialog("Error", error, "OK");
@@ -236,39 +248,49 @@ namespace UnityQuickSheet
 
             List<string> titleList = titles.ToList();
 
-            if (machine.HasColumnHeader() && reimport == false)
+            //var found = titleList.Find(x => x == machine.WorkSheetName);
+            //if (found != null)
+            //{
+            //    machine.ColumnHeaderList.Clear();
+            //}
+            //else
             {
-                var headerDic = machine.ColumnHeaderList.ToDictionary(header => header.name);
-
-                // collect non-changed column headers
-                var exist = titleList.Select(t => GetColumnHeaderString(t))
-                    .Where(e => headerDic.ContainsKey(e) == true)
-                    .Select(t => new ColumnHeader { name = t, type = headerDic[t].type, isArray = headerDic[t].isArray, OrderNO = headerDic[t].OrderNO });
-
                 
-                // collect newly added or changed column headers
-                var changed = titleList.Select(t => GetColumnHeaderString(t))
-                    .Where(e => headerDic.ContainsKey(e) == false)
-                    .Select(t => ParseColumnHeader(t, titleList.IndexOf(t)));
 
-                // merge two list via LINQ
-                var merged = exist.Union(changed).OrderBy(x => x.OrderNO);
-
-                machine.ColumnHeaderList.Clear();
-                machine.ColumnHeaderList = merged.ToList();
-            }
-            else
-            {
-                machine.ColumnHeaderList.Clear();
-                if (titleList.Count > 0)
+                if (machine.HasColumnHeader() && reimport == false)
                 {
-                    int order = 0;
-                    machine.ColumnHeaderList = titleList.Select(e => ParseColumnHeader(e, order++)).ToList();
+                    var headerDic = machine.ColumnHeaderList.ToDictionary(header => header.name);
+
+                    // collect non-changed column headers
+                    var exist = titleList.Select(t => GetColumnHeaderString(t))
+                        .Where(e => headerDic.ContainsKey(e) == true)
+                        .Select(t => new ColumnHeader { name = t, type = headerDic[t].type, isArray = headerDic[t].isArray, OrderNO = headerDic[t].OrderNO });
+
+
+                    // collect newly added or changed column headers
+                    var changed = titleList.Select(t => GetColumnHeaderString(t))
+                        .Where(e => headerDic.ContainsKey(e) == false)
+                        .Select(t => ParseColumnHeader(t, titleList.IndexOf(t)));
+
+                    // merge two list via LINQ
+                    var merged = exist.Union(changed).OrderBy(x => x.OrderNO);
+
+                    machine.ColumnHeaderList.Clear();
+                    machine.ColumnHeaderList = merged.ToList();
                 }
                 else
                 {
-                    string msg = string.Format("An empty workhheet: [{0}] ", sheet);
-                    Debug.LogWarning(msg);
+                    machine.ColumnHeaderList.Clear();
+                    if (titleList.Count > 0)
+                    {
+                        int order = 0;
+                        machine.ColumnHeaderList = titleList.Select(e => ParseColumnHeader(e, order++)).ToList();
+                    }
+                    else
+                    {
+                        string msg = string.Format("An empty workhheet: [{0}] ", sheet);
+                        Debug.LogWarning(msg);
+                    }
                 }
             }
 

@@ -32,7 +32,6 @@ namespace UnityQuickSheet
         [SerializeField]
         protected int currentSelectedSheet = 0;
 
-
         /// <summary>
         /// Note: Called when the asset file is created.
         /// </summary>

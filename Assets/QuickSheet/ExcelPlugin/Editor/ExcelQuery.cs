@@ -185,11 +185,11 @@ namespace UnityQuickSheet
         /// <summary>
         /// Retrieves all first columns(aka. header column) which are needed to determine each type of a cell.
         /// </summary>
-        public string[] GetTitle(int start, ref string error)
+        public string[] GetTitle(ref string error)
         {
             if (table == null)
             {
-                error = string.Format(@"Empty row at {0}", start);
+                error = string.Format(@"Empty row");
                 return null;
             }
 
