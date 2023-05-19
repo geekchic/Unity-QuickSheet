@@ -9,11 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 98fce3204d7cbc64c930d2c915a49615, type: 3}
-  m_Name: ExcelExample
+  m_Script: {fileID: 11500000, guid: 9138addfa1c54b6488a762f33aa811b8, type: 3}
+  m_Name: Fighter
   m_EditorClassIdentifier: 
-  SheetName: Assets/QuickSheet/Example/Excel/Example.xlsx
-  WorksheetName: ExcelExample
+  SheetName: Assets/QuickSheet/Example/Excel/ExcelTable.xlsx
+  WorksheetName: Fighter
   dataArray:
   - id: 0
     name: Goblin

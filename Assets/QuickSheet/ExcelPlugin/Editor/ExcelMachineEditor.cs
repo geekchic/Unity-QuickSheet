@@ -31,6 +31,8 @@ namespace UnityQuickSheet
                     machine.RuntimeClassPath = ExcelSettings.Instance.RuntimePath;
                 if (string.IsNullOrEmpty(ExcelSettings.Instance.EditorPath) == false)
                     machine.EditorClassPath = ExcelSettings.Instance.EditorPath;
+                if (string.IsNullOrEmpty(ExcelSettings.Instance.ScriptableObjectPath) == false)
+                    machine.ScriptableObjectPath = ExcelSettings.Instance.ScriptableObjectPath;
             }
         }
 
@@ -154,7 +156,7 @@ namespace UnityQuickSheet
             machine.TemplatePath = EditorGUILayout.TextField("Template: ", machine.TemplatePath);
             machine.RuntimeClassPath = EditorGUILayout.TextField("Runtime: ", machine.RuntimeClassPath);
             machine.EditorClassPath = EditorGUILayout.TextField("Editor:", machine.EditorClassPath);
-            //machine.DataFilePath = EditorGUILayout.TextField("Data:", machine.DataFilePath);
+            machine.ScriptableObjectPath = EditorGUILayout.TextField("Data:", machine.ScriptableObjectPath);
 
             machine.onlyCreateDataClass = EditorGUILayout.Toggle("Only DataClass", machine.onlyCreateDataClass);
 
@@ -289,8 +291,8 @@ namespace UnityQuickSheet
             sp.importedFilePath = machine.excelFilePath;
 
             // path where the .asset file will be created.
-            string path = Path.GetDirectoryName(machine.excelFilePath);
-            path += "/" + machine.WorkSheetName + ".asset";
+            //string path = Path.GetDirectoryName(machine.excelFilePath);
+            string path = Path.Combine("Assets", machine.ScriptableObjectPath, machine.WorkSheetName + ".asset");
             sp.assetFilepath = path.Replace('\\', '/');
             sp.assetPostprocessorClass = machine.WorkSheetName + "AssetPostprocessor";
             sp.template = GetTemplate("PostProcessor");

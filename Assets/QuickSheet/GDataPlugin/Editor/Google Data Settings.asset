@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: Google Data Settings
   m_EditorClassIdentifier: 
   TemplatePath: QuickSheet/GDataPlugin/Templates
-  RuntimePath: QuickSheet/GoogleExample/Data/Runtime
-  EditorPath: QuickSheet/GoogleExample/Data/Editor
-  ScriptableObjectPath: QuickSheet/GoogleExample/Data/SO
+  RuntimePath: 
+  EditorPath: 
+  ScriptableObjectPath: 
   OAuth2Data:
     type: service_account
     project_id: unity-quicksheet-387005

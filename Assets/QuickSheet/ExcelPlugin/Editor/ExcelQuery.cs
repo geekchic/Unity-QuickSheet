@@ -25,7 +25,8 @@ namespace UnityQuickSheet
     public class ExcelQuery
     {
         private readonly IWorkbook workbook = null;
-        private readonly ISheet sheet = null;
+        //private readonly ISheet sheet = null;
+        private readonly XSSFTable table = null;
         private string filepath = string.Empty;
 
         /// <summary>
@@ -54,12 +55,16 @@ namespace UnityQuickSheet
                         throw new Exception("Wrong file.");
                     }
 
-                    //NOTE: An empty sheetName can be available. Nothing to do with an empty sheetname.
-                    if (!string.IsNullOrEmpty(sheetName))
+
+                    int numSheets = this.workbook.NumberOfSheets;
+                    for (int i = 0; i < numSheets; i++)
                     {
-                        sheet = workbook.GetSheet(sheetName);
-                        if (sheet == null)
-                            Debug.LogErrorFormat("Cannot find sheet '{0}'.", sheetName);
+                        var sheet = (XSSFSheet)this.workbook.GetSheetAt(i);
+                        var found = sheet.GetTables().Find(x => x.Name == sheetName);
+                        if (found != null)
+                        {
+                            table = found;
+                        }
                     }
 
                     this.filepath = path;
@@ -76,7 +81,7 @@ namespace UnityQuickSheet
         /// </summary>
         public bool IsValid()
         {
-            if (this.workbook != null && this.sheet != null)
+            if (this.workbook != null && this.table != null)
                 return true;
 
             return false;
@@ -94,10 +99,13 @@ namespace UnityQuickSheet
 
         string GetHeaderColumnName(int cellnum)
         {
-            ICell headerCell = sheet.GetRow(0).GetCell(cellnum);
-            if (headerCell != null)
-                return headerCell.StringCellValue;
-            return string.Empty;
+            if (table.GetCTTable().tableColumns.count >= cellnum)
+            {
+                return string.Empty;
+            }
+
+            var column = table.GetCTTable().tableColumns.tableColumn[cellnum];
+            return column.name;
         }
 
         /// <summary>
@@ -114,42 +122,37 @@ namespace UnityQuickSheet
 
             var result = new List<T>();
 
-            int current = 0;
-            foreach (IRow row in sheet)
+            var sheet = table.GetXSSFSheet();
+            int startRow = table.GetStartCellReference().Row + 1;
+            int endRow = table.GetEndCellReference().Row;
+            int startCol = table.GetStartCellReference().Col;
+            int endCol = table.GetEndCellReference().Col;
+
+            for (int r = startRow; r <= endRow; r++)
             {
-                if (current < start)
-                {
-                    current++; // skip header column.
-                    continue;
-                }
+                IRow row = sheet.GetRow(r);
 
                 var item = (T)Activator.CreateInstance(t);
-                for (var i = 0; i < p.Length; i++)
+
+                for (int c = startCol; c <= endCol; c++)
                 {
-                    ICell cell = row.GetCell(i);
+                    var property = p[c - startCol];
 
-                    if (cell == null)  // skip empty cell
-                        continue;
+                    ICell cell = row.GetCell(c);
 
-                    var property = p[i];
-                    if (property.CanWrite)
+                    try
                     {
-                        try
-                        {
-                            var value = ConvertFrom(cell, property.PropertyType);
-                            property.SetValue(item, value, null);
-                        }
-                        catch (Exception e)
-                        {
-                            string pos = string.Format("Row[{0}], Cell[{1}]", (current).ToString(), GetHeaderColumnName(i));
-                            Debug.LogError(string.Format("Excel File {0} Deserialize Exception: {1} at {2}", this.filepath, e.Message, pos));
-                        }
+                        var value = ConvertFrom(cell, property.PropertyType);
+                        property.SetValue(item, value, null);
+                    }
+                    catch (Exception e)
+                    {
+                        string pos = string.Format("Row[{0}], Cell[{1}]", r - startRow, c - startCol);
+                        Debug.LogError(string.Format("Excel File {0} Deserialize Exception: {1} at {2}", this.filepath, e.Message, pos));
                     }
                 }
 
                 result.Add(item);
-
-                current++;
             }
 
             return result;
@@ -166,7 +169,11 @@ namespace UnityQuickSheet
                 int numSheets = this.workbook.NumberOfSheets;
                 for (int i = 0; i < numSheets; i++)
                 {
-                    sheetList.Add(this.workbook.GetSheetName(i));
+                    var sheet = (XSSFSheet)this.workbook.GetSheetAt(i);
+                    foreach (var table in sheet.GetTables())
+                    {
+                        sheetList.Add(table.Name);
+                    }
                 }
             }
             else
@@ -180,44 +187,37 @@ namespace UnityQuickSheet
         /// </summary>
         public string[] GetTitle(int start, ref string error)
         {
-            if (sheet == null)
+            if (table == null)
             {
-                error = @"Sheet is null";
+                error = string.Format(@"Empty row at {0}", start);
                 return null;
             }
 
             List<string> result = new List<string>();
 
-            IRow title = sheet.GetRow(start);
-            if (title != null)
+            for (int i = 0; i < table.GetCTTable().tableColumns.count; i++)
             {
-                for (int i = 0; i < title.LastCellNum; i++)
+                var cell = table.GetCTTable().tableColumns.tableColumn[i];
+                if (cell == null)
                 {
-                    var cell = title.GetCell(i);
-                    if (cell == null)
-                    {
-                        // null or empty column is found. Note column index starts from 0.
-                        Debug.LogWarningFormat("Null or empty column is found at {0}.\n", i);
-                        continue;
-                    }
-                    string value = cell.StringCellValue;
-                    if (string.IsNullOrEmpty(value))
-                    {
-                        // null or empty column is found. Note column index starts from 0.
-                        Debug.LogWarningFormat("Null or empty column is found at {0}.The celltype of {0} is '{1}' type.\n", i, title.GetCell(i).CellType);
-                    }
-                    else
-                    {
-                        // column header is not an empty string, we check its validation later.
-                        result.Add(value);
-                    }
+                    // null or empty column is found. Note column index starts from 0.
+                    Debug.LogWarningFormat("Null or empty column is found at {0}.\n", i);
+                    continue;
                 }
-
-                return result.ToArray();
+                string value = cell.name;
+                if (string.IsNullOrEmpty(value))
+                {
+                    // null or empty column is found. Note column index starts from 0.
+                    Debug.LogWarningFormat("Null or empty column is found at {0}.", i);
+                }
+                else
+                {
+                    // column header is not an empty string, we check its validation later.
+                    result.Add(value);
+                }
             }
 
-            error = string.Format(@"Empty row at {0}", start);
-            return null;
+            return result.ToArray();
         }
 
         /// <summary>

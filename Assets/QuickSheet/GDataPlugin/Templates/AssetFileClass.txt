@@ -8,7 +8,7 @@ using UnityQuickSheet;
 /// 
 public partial class GoogleDataAssetUtility
 {
-    [MenuItem("Assets/Create/Google/$ClassName")]
+    [MenuItem("Assets/Create/GoogleSheet/$ClassName")]
     public static void $AssetFileCreateFuncName()
     {
         $ClassName asset = CustomAssetUtility.CreateAsset<$ClassName>();

@@ -47,6 +47,11 @@ namespace UnityQuickSheet
             ExcelSettings.Instance.EditorPath = GUILayout.TextField(ExcelSettings.Instance.EditorPath);
             GUILayout.EndHorizontal();
 
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("ScriptableObject Path: ", GUILayout.Width(100));
+            ExcelSettings.Instance.ScriptableObjectPath = GUILayout.TextField(ExcelSettings.Instance.ScriptableObjectPath);
+            GUILayout.EndHorizontal();
+
             if (GUI.changed)
             {
                 EditorUtility.SetDirty(ExcelSettings.Instance);
