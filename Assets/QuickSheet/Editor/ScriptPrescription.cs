@@ -32,6 +32,8 @@ namespace UnityQuickSheet
 
         public MemberFieldData[] memberFields;
 
+        public EnumTableData[] enumTables;
+
         /// <summary>
         /// Reserved for future usage to make it easy for explicitly converting.
         /// </summary>
@@ -141,4 +143,21 @@ namespace UnityQuickSheet
         }
     }
 
+
+    public class EnumTableData
+    {
+        private string name;
+
+        public string Name
+        {
+            get { return name; }
+            set { name = value; }
+        }
+
+        public Dictionary<string, int> MemberFields = new Dictionary<string, int>();
+
+        public EnumTableData()
+        {
+        }
+    }
 }

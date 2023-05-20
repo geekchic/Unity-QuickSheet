@@ -17,19 +17,18 @@ MonoBehaviour:
   editorScriptFilePath: QuickSheet/Example/Excel/Data/Editor
   scriptableObjectFilePath: QuickSheet/Example/Excel/ScriptableObjects
   sheetName: ExcelTable.xlsx
-  workSheetName: Difficulty
+  workSheetName: Currency
   columnHeaderList:
-  - type: 0
-    name: Difficulty
+  - type: 1
+    name: Id
     isEnable: 0
     isArray: 0
-  - type: 0
-    name: Value
+  - type: 1
+    name: Name
     isEnable: 0
     isArray: 0
   excelFilePath: Assets/QuickSheet/Example/Excel/ExcelTable.xlsx
   SheetNames:
-  - Difficulty
   - Fighter
   - Currency
-  currentSelectedSheet: 0
+  currentSelectedSheet: 1

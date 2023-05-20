@@ -158,24 +158,43 @@ namespace UnityQuickSheet
             foreach (KeyValuePair<string, string> kvp in m_ScriptPrescription.mStringReplacements)
                 m_Text = m_Text.Replace (kvp.Key, kvp.Value);
 
-            // Do not change tabs to spcaes of the .txt template files.
-            Match match = Regex.Match (m_Text, @"(\t*)\$MemberFields");
-            if (match.Success)
             {
-                // Set indent level to number of tabs before $Functions keyword
-                IndentLevel = match.Groups[1].Value.Length;
-                if (m_ScriptPrescription.memberFields != null)
+                // Do not change tabs to spcaes of the .txt template files.
+                Match match = Regex.Match(m_Text, @"(\t*)\$MemberFields");
+                if (match.Success)
                 {
-                    foreach(var field in m_ScriptPrescription.memberFields)
+                    // Set indent level to number of tabs before $Functions keyword
+                    IndentLevel = match.Groups[1].Value.Length;
+                    if (m_ScriptPrescription.memberFields != null)
                     {
-                        WriteMemberField(field);
-                        WriteProperty(field);
-                        WriteBlankLine();
+                        foreach (var field in m_ScriptPrescription.memberFields)
+                        {
+                            WriteMemberField(field);
+                            WriteProperty(field);
+                            WriteBlankLine();
+                        }
+                        m_Text = m_Text.Replace(match.Value + "\n", m_Writer.ToString());
                     }
-                    m_Text = m_Text.Replace (match.Value + "\n", m_Writer.ToString ());
                 }
             }
-            
+
+            {
+                // Do not change tabs to spcaes of the .txt template files.
+                Match match = Regex.Match(m_Text, @"(\t*)\$EnumTables");
+                if (match.Success)
+                {
+                    if (m_ScriptPrescription.enumTables != null)
+                    {
+                        foreach (var enumTable in m_ScriptPrescription.enumTables)
+                        {
+                            WriteEnumTable(enumTable);
+                            WriteBlankLine();
+                        }
+                        m_Text = m_Text.Replace(match.Value, m_Writer.ToString());
+                    }
+                }
+            }
+
             // Return the text of the script
             return m_Text;
         }
@@ -294,6 +313,16 @@ namespace UnityQuickSheet
                 }
             }
         }
+
+        private void WriteEnumTable(EnumTableData enumTable)
+        {
+            m_Writer.WriteLine($"public enum {enumTable.Name}");
+            m_Writer.WriteLine("{");
+            foreach (var field in enumTable.MemberFields)
+            {
+                m_Writer.WriteLine($"   {field.Key} = {field.Value},");
+            }
+            m_Writer.WriteLine("}");
+        }
     }
 }
-

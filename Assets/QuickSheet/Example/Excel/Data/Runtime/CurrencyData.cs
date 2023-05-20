@@ -9,8 +9,8 @@ using System.Collections;
 public class CurrencyData
 {
   [SerializeField]
-  int id;
-  public int Id { get {return id; } set { this.id = value;} }
+  string id;
+  public string Id { get {return id; } set { this.id = value;} }
   
   [SerializeField]
   string name;

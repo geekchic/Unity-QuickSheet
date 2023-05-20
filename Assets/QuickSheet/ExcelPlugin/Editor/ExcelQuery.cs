@@ -172,7 +172,10 @@ namespace UnityQuickSheet
                     var sheet = (XSSFSheet)this.workbook.GetSheetAt(i);
                     foreach (var table in sheet.GetTables())
                     {
-                        sheetList.Add(table.Name);
+                        if (table.Name != table.GetCTTable().tableColumns.tableColumn[0].name)
+                        {
+                            sheetList.Add(table.Name);
+                        }
                     }
                 }
             }
@@ -310,6 +313,29 @@ namespace UnityQuickSheet
 
             // for all other types, convert its corresponding type.
             return Convert.ChangeType(value, t);
+        }
+
+        public XSSFTable[] GetEnumTables()
+        {
+            List<XSSFTable> tableList = new List<XSSFTable>();
+            if (this.workbook != null)
+            {
+                int numSheets = this.workbook.NumberOfSheets;
+                for (int i = 0; i < numSheets; i++)
+                {
+                    var sheet = (XSSFSheet)this.workbook.GetSheetAt(i);
+                    foreach (var table in sheet.GetTables())
+                    {
+                        if (table.Name == table.GetCTTable().tableColumns.tableColumn[0].name)
+                        {
+                            tableList.Add(table);
+                        }
+                    }
+                }
+            }
+            else
+                Debug.LogError("Workbook is null. Did you forget to import excel file first?");
+            return (tableList.Count > 0) ? tableList.ToArray() : null;
         }
     }
 }

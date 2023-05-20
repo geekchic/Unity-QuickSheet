@@ -1,4 +1,11 @@
 ﻿///////////////////////////////////////////////////////////////////////////////
+using System.IO;
+using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using Unity.Plastic.Newtonsoft.Json;
+using UnityEditor;
 ///
 /// GoogleDataSettingsEditor.cs
 /// 
@@ -6,18 +13,6 @@
 ///
 ///////////////////////////////////////////////////////////////////////////////
 using UnityEngine;
-using UnityEditor;
-using System.Collections;
-using System.Collections.Generic;
-using System;
-using System.IO;
-using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-
-using System.Net;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
 
 namespace UnityQuickSheet
 {

@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System;
 using System.IO;
 using System.Linq;
+using NPOI.SS.UserModel;
 
 namespace UnityQuickSheet
 {
@@ -99,6 +100,13 @@ namespace UnityQuickSheet
 
             // spreadsheet name should be read-only
             EditorGUILayout.TextField("Spreadsheet File: ", machine.SpreadSheetName);
+
+            EditorGUILayout.Separator();
+
+            if (GUILayout.Button("Generate Enums"))
+            {
+                GenerateEnums();
+            }
 
             EditorGUILayout.Space();
 
@@ -247,16 +255,7 @@ namespace UnityQuickSheet
             }
 
             List<string> titleList = titles.ToList();
-
-            //var found = titleList.Find(x => x == machine.WorkSheetName);
-            //if (found != null)
-            //{
-            //    machine.ColumnHeaderList.Clear();
-            //}
-            //else
             {
-                
-
                 if (machine.HasColumnHeader() && reimport == false)
                 {
                     var headerDic = machine.ColumnHeaderList.ToDictionary(header => header.name);
@@ -321,6 +320,127 @@ namespace UnityQuickSheet
 
             // write a script to the given folder.
             using (var writer = new StreamWriter(TargetPathForAssetPostProcessorFile(machine.WorkSheetName)))
+            {
+                writer.Write(new ScriptGenerator(sp).ToString());
+                writer.Close();
+            }
+        }
+
+        private void GenerateEnums()
+        {
+            ExcelMachine machine = target as ExcelMachine;
+
+            string path = machine.excelFilePath;
+
+            if (string.IsNullOrEmpty(path))
+            {
+                string msg = "You should specify spreadsheet file first!";
+                EditorUtility.DisplayDialog("Error", msg, "OK");
+                return;
+            }
+
+            if (!File.Exists(path))
+            {
+                string msg = string.Format("File at {0} does not exist.", path);
+                EditorUtility.DisplayDialog("Error", msg, "OK");
+                return;
+            }
+
+            var excelQuery = new ExcelQuery(path);
+            var enumTables = excelQuery.GetEnumTables();
+            if (enumTables == null)
+            {
+                EditorUtility.DisplayDialog("Error", "Not Found Enums", "OK");
+                return;
+            }
+            else if (enumTables.Length == 0)
+            {
+                EditorUtility.DisplayDialog("Error", "Not Found Enums", "OK");
+                return;
+            }
+            else
+            {
+                Directory.CreateDirectory(Path.Combine(Application.dataPath, machine.RuntimeClassPath));
+
+                ScriptPrescription sp = GenerateEnums(machine, excelQuery);
+                if (sp != null)
+                {
+                    Debug.Log("Successfully generated!");
+                }
+                else
+                    Debug.LogError("Failed to create a script from excel.");
+            }
+        }
+
+
+        /// <summary>
+        /// Generate script files with the given templates.
+        /// Total four files are generated, two for runtime and others for editor.
+        /// </summary>
+        private ScriptPrescription GenerateEnums(BaseMachine m, ExcelQuery excelQuery)
+        {
+            if (m == null)
+                return null;
+
+            ScriptPrescription sp = new ScriptPrescription();
+            CreateEnumsClassScript(m, excelQuery, sp);
+            AssetDatabase.Refresh();
+            return sp;
+        }
+
+        /// <summary>
+        /// Create a data class which describes the spreadsheet and write it down on the specified folder.
+        /// </summary>
+        private void CreateEnumsClassScript(BaseMachine machine, ExcelQuery excelQuery, ScriptPrescription sp)
+        {
+            // check the directory path exists
+            string fullPath = Path.Combine(Application.dataPath, machine.RuntimeClassPath,"Enums.cs");
+            string folderPath = Path.GetDirectoryName(fullPath);
+            if (!Directory.Exists(folderPath))
+            {
+                EditorUtility.DisplayDialog(
+                    "Warning",
+                    "The folder for runtime script files does not exist. Check the path " + folderPath + " exists.",
+                    "OK"
+                    );
+                return;
+            }
+
+            List<EnumTableData> enumTables = new List<EnumTableData>();
+
+
+            var tables = excelQuery.GetEnumTables();
+
+            foreach (var table in tables)
+            {
+                var data = new EnumTableData();
+                data.Name = table.Name;
+
+                var sheet = table.GetXSSFSheet();
+                int startRow = table.GetStartCellReference().Row + 1;
+                int endRow = table.GetEndCellReference().Row;
+                int startCol = table.GetStartCellReference().Col;
+                int endCol = table.GetEndCellReference().Col;
+
+                int index = 0;
+                for (int r = startRow; r <= endRow; r++)
+                {
+                    IRow row = sheet.GetRow(r);
+                    string key = row.GetCell(startCol).StringCellValue;
+                    int value = (row.Count() > 1) ? Convert.ToInt32(row.GetCell(startCol + 1).NumericCellValue) : index;
+                    data.MemberFields.Add(key, value);
+                    index++;
+                }
+
+                enumTables.Add(data);
+            }
+
+            sp.className = "Enums";
+            sp.template = GetTemplate("EnumsClass");
+            sp.enumTables = enumTables.ToArray();
+
+            // write a script to the given folder.		
+            using (var writer = new StreamWriter(fullPath))
             {
                 writer.Write(new ScriptGenerator(sp).ToString());
                 writer.Close();
